@@ -1,0 +1,54 @@
+/* Query 1 */
+SELECT c.FirstName || " " || c.LastName as Name, SUM(i.total) total_spent, 
+  CASE WHEN SUM(i.total) > 45 THEN 'top'
+  WHEN  SUM(i.total) > 38 THEN 'middle'
+  ELSE 'low' END AS customer_level
+FROM Invoice i
+JOIN Customer c
+ON i.CustomerId= c.CustomerId
+GROUP BY 1
+ORDER BY 2 DESC;
+
+
+/* Query 2 */
+SELECT  e.FirstName||" "|| e.LastName as Employee_name ,Count(c.CustomerId)
+	FROM Employee e
+	JOIN Customer c
+	ON e.EmployeeId =c.SupportRepId
+GROUP by 1
+order by 2 desc;
+
+/* Query 3 */
+SELECT ar.Name artist_name , COUNT(*) num_tracks
+from Track t
+join Album ab
+on ab.AlbumId = t.AlbumId
+JOIN Artist ar
+on ar.Artistid = ab.ArtistId
+GROUP BY 1 
+Having num_tracks > 50
+ORDER BY num_tracks DESC;
+
+
+/* Query 4 */
+WITH t1 AS (
+	SELECT ar.Name Artist_name, i.BillingCountry Country_name, SUM(i.total) total_amt
+   	FROM Artist ar
+   	JOIN Album ab
+   	on ar.Artistid = ab.ArtistId
+   	JOIN track t
+   	ON t.TrackId = ab.AlbumId
+   	JOIN InvoiceLine il
+   	on t.TrackId = il. TrackId
+   	JOIN Invoice i
+   	on i.InvoiceId = il.InvoiceId
+   	GROUP BY 1,2
+   	ORDER BY 3 DESC),
+t2 as ( 
+	SELECT Country_name , max(total_amt)max_total
+	FROM t1
+	group by 1  )
+SELECT t1. Artist_name , t1 .Country_name ,t1.total_amt
+from t1
+join t2
+on t1.Country_name = t2.Country_name AND t1.total_amt = t2.max_total;
